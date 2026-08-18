@@ -21,21 +21,22 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y scons git ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev openjdk-17-jdk autoconf libtool pkg-config
+        sudo apt-get install -y scons git ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev openjdk-17-jdk autoconf libtool pkg-config cmake
         pip install --upgrade pip
         pip install buildozer "cython<3.0.0"
 
-    - name: Initialize Buildozer Config
+    - name: Configure Buildozer
       run: |
         buildozer init
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,opencv-python,numpy/' buildozer.spec
+        # تعديل المتطلبات لاستخدام opencv المخصصة للأندرويد بدلاً من opencv-python
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,opencv,numpy/' buildozer.spec
+        sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
         sed -i 's/android.api = 33/android.api = 33/' buildozer.spec
-        sed -i 's/# android.build_tools_version = 33.0.2/android.build_tools_version = 33.0.2/' buildozer.spec
-        sed -i 's/# accept_sdk_license = False/accept_sdk_license = True/' buildozer.spec
+        sed -i 's/# android.ndk = 25b/android.ndk = 25b/' buildozer.spec
 
-    - name: Accept Android Licenses & Build APK
+    - name: Build APK
       run: |
-        yes | buildozer -v android debug
+        buildozer -v android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
